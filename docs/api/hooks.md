@@ -13,7 +13,6 @@ React Redux now offers a set of hook APIs as an alternative to the existing `con
 
 These hooks were first added in v7.1.0.
 
-
 ## Using Hooks in a React Redux App
 
 As with `connect()`, you should start by wrapping your entire application in a `<Provider>` component to make the store available throughout the component tree:
@@ -212,10 +211,6 @@ export const App = () => {
 
 ## Removed: `useActions()`
 
-
-
-
-
 ## `useDispatch()`
 
 ```js
@@ -295,7 +290,6 @@ export const CounterComponent = ({ value }) => {
 }
 ```
 
-
 ## Custom context
 
 The `<Provider>` component allows you to specify an alternate context via the `context` prop. This is useful if you're building a complex reusable component, and you don't want your store to collide with any Redux store your consumers' applications might use.
@@ -362,7 +356,7 @@ If you prefer to deal with this issue yourself, here are some possible options f
 - In cases where you do rely on props in your selector function _and_ those props may change over time, _or_ the data you're extracting may be based on items that can be deleted, try writing the selector functions defensively. Don't just reach straight into `state.todos[props.id].name` - read `state.todos[props.id]` first, and verify that it exists before trying to read `todo.name`.
 - Because `connect` adds the necessary `Subscription` to the context provider and delays evaluating child subscriptions until the connected component has re-rendered, putting a connected component in the component tree just above the component using `useSelector` will prevent these issues as long as the connected component gets re-rendered due to the same store update as the hooks component.
 
-> **Note**: For a longer description of this issue, see [this chat log that describes the problems in more detail](https://gist.github.com/markerikson/faac6ae4aca7b82a058e13216a7888ec), as well as [issue #1179](https://github.com/reduxjs/react-redux/issues/1179).
+> **Note**: For a longer description of this issue, see ["Stale props and zombie children in Redux" by Kai Hao](https://kaihao.dev/posts/Stale-props-and-zombie-children-in-Redux), [this chat log that describes the problems in more detail](https://gist.github.com/markerikson/faac6ae4aca7b82a058e13216a7888ec), and [issue #1179](https://github.com/reduxjs/react-redux/issues/1179).
 
 ### Performance
 
@@ -395,7 +389,7 @@ This hook was in our original alpha release, but removed in `v7.1.0-alpha.4`, ba
 That suggestion was based on "binding action creators" not being as useful in a hooks-based use case, and causing too
 much conceptual overhead and syntactic complexity.
 
-You should probably prefer to  call the [`useDispatch`](#usedispatch) hook in your components to retrieve a reference to `dispatch`,
+You should probably prefer to call the [`useDispatch`](#usedispatch) hook in your components to retrieve a reference to `dispatch`,
 and manually call `dispatch(someActionCreator())` in callbacks and effects as needed. You may also use the Redux
 [`bindActionCreators`](https://redux.js.org/api/bindactioncreators) function in your own code to bind action creators,
 or "manually" bind them like `const boundAddTodo = (text) => dispatch(addTodo(text))`.
@@ -410,12 +404,15 @@ import { useMemo } from 'react'
 
 export function useActions(actions, deps) {
   const dispatch = useDispatch()
-  return useMemo(() => {
-    if (Array.isArray(actions)) {
-      return actions.map(a => bindActionCreators(a, dispatch))
-    }
-    return bindActionCreators(actions, dispatch)
-  }, deps ? [dispatch, ...deps] : [dispatch])
+  return useMemo(
+    () => {
+      if (Array.isArray(actions)) {
+        return actions.map(a => bindActionCreators(a, dispatch))
+      }
+      return bindActionCreators(actions, dispatch)
+    },
+    deps ? [dispatch, ...deps] : [dispatch]
+  )
 }
 ```
 
